@@ -1,0 +1,18 @@
+const errorHandler = (err, req, res, next) => {
+  let error = { ...err, message: err.message };
+  console.error("❌", err);
+
+  if (err.name === "CastError") return res.status(404).json({ success: false, message: "Resource not found" });
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
+    return res.status(400).json({ success: false, message: `${field} already exists` });
+  }
+  if (err.name === "ValidationError") {
+    const msg = Object.values(err.errors).map((e) => e.message).join(", ");
+    return res.status(400).json({ success: false, message: msg });
+  }
+
+  res.status(error.statusCode || 500).json({ success: false, message: error.message || "Server Error" });
+};
+
+module.exports = errorHandler;
